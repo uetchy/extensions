@@ -1,9 +1,9 @@
-import { Action, ActionPanel, List, useNavigation } from "@raycast/api";
+import { Action, ActionPanel, Icon, List, useNavigation } from "@raycast/api";
 import { useState } from "react";
 import DashResult from "../components/DashResult";
 import { useDocsets, useDocsetSearch } from "../hooks";
-import SingleDocsetSearch from "./SingleDocsetSearch";
 import { Docset } from "../types";
+import SingleDocsetSearch from "./SingleDocsetSearch";
 
 const getFilteredDocsets = (docsets: Docset[], searchText: string) =>
   docsets.filter(
@@ -15,13 +15,15 @@ const getFilteredDocsets = (docsets: Docset[], searchText: string) =>
 export default function MultiDocsetSearch() {
   const [searchText, setSearchText] = useState("");
   const [docsets, isLoadingDocsets] = useDocsets();
-  const [searchResults, isLoadingSearchResults] = useDocsetSearch(searchText);
+  const [keyword, setKeyword] = useState("");
+  const [searchResults, isLoadingSearchResults] = useDocsetSearch(searchText, keyword);
   const filteredDocsets = getFilteredDocsets(docsets, searchText);
   const docsetKeywords = docsets.map((item) => item.docsetKeyword);
 
   return (
     <List
       isLoading={isLoadingDocsets || isLoadingSearchResults}
+      searchBarAccessory={<DocsetDropdown docsets={docsets} onKeywordChange={(newKeyword) => setKeyword(newKeyword)} />}
       searchBarPlaceholder="Filter docsets by name or keyword..."
       onSearchTextChange={(newValue) => {
         const setKeywordRegex = /(^\w+) /;
@@ -59,5 +61,29 @@ function DocsetListItem({ docset }: { docset: Docset }) {
         </ActionPanel>
       }
     />
+  );
+}
+
+function DocsetDropdown({
+  docsets,
+  onKeywordChange,
+}: {
+  docsets: Docset[];
+  onKeywordChange: (keyword: string) => void;
+}) {
+  return (
+    <List.Dropdown tooltip="Select Docset" storeValue={true} onChange={(newValue) => onKeywordChange(newValue)}>
+      <>
+        <List.Dropdown.Item key="all" title="All" value={""} icon={Icon.Circle} />
+        {docsets.map((docset) => (
+          <List.Dropdown.Item
+            key={docset.docsetBundle}
+            title={docset.docsetName}
+            icon={docset.iconPath ? { source: docset.iconPath } : undefined}
+            value={docset.docsetKeyword}
+          />
+        ))}
+      </>
+    </List.Dropdown>
   );
 }

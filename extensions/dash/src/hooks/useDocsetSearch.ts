@@ -36,7 +36,7 @@ export default function useDocsetSearch(searchText: string, keyword = ""): [Dash
     return function cleanup() {
       cancel.current?.abort();
     };
-  }, [dashApp, searchText]);
+  }, [dashApp, searchText, keyword]);
 
   return [state.results, state.isLoading];
 }
